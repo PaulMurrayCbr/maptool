@@ -525,6 +525,9 @@ public class PreferencesDialog extends AbeillePanel {
 
   private final JTextField installDirTextField = getTextField("installDir");
 
+  /** Button to detect displays and populate the displaysScrollPane. */
+  private final JButton detectDisplaysButton = (JButton) getButton("detectDisplaysButton");
+
   private final Consumer<JSpinner> setSpinnerEditorWidth =
       spinner -> {
         Component mySpinnerEditor = spinner.getEditor();
@@ -1659,6 +1662,18 @@ public class PreferencesDialog extends AbeillePanel {
     for (JSpinner spinner : spinners) {
       setSpinnerEditorWidth.accept(spinner);
     }
+
+    detectDisplaysButton.addActionListener(
+        e -> {
+          detectDisplaysButton.setEnabled(false);
+          HardwareTabUtils.detectDisplays(
+              found -> {
+                detectDisplaysButton.setEnabled(true);
+                if (found) {
+                  loadDetectedDisplays();
+                }
+              });
+        });
   }
 
   /**
@@ -1837,7 +1852,11 @@ public class PreferencesDialog extends AbeillePanel {
         l -> {
           ThemeSupport.setUseThemeColorsForChat(useThemeForChat.isSelected());
         });
+
+    loadDetectedDisplays();
   }
+
+  private void loadDetectedDisplays() {}
 
   /** Utility method to create and set the selected item for LocalizedComboItem combo box models. */
   private ComboBoxModel<LocalizedComboItem> getLocalizedModel(
