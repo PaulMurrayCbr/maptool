@@ -52,6 +52,20 @@ public class HardwareTabUtils {
         actualHeight = detectedHeight;
       }
     }
+
+    public String toString() {
+      return "[\""
+          + idString
+          + "\" "
+          + detectedWidth
+          + "\u00D7"
+          + detectedHeight
+          + " @ "
+          + detectedX
+          + ","
+          + detectedY
+          + "]";
+    }
   }
 
   /**

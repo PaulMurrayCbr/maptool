@@ -28,6 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -528,6 +529,11 @@ public class PreferencesDialog extends AbeillePanel {
   /** Button to detect displays and populate the displaysScrollPane. */
   private final JButton detectDisplaysButton = (JButton) getButton("detectDisplaysButton");
 
+  private final JList<HardwareTabUtils.DisplayInfo> detectedDisplaysList =
+      (JList<HardwareTabUtils.DisplayInfo>) getList("detectedDisplaysList");
+
+  private final DefaultListModel<HardwareTabUtils.DisplayInfo> detectedDisplaysModel = new DefaultListModel<>();
+
   private final Consumer<JSpinner> setSpinnerEditorWidth =
       spinner -> {
         Component mySpinnerEditor = spinner.getEditor();
@@ -877,6 +883,7 @@ public class PreferencesDialog extends AbeillePanel {
     DefaultComboBoxModel<String> languageModel = new DefaultComboBoxModel<String>();
     languageModel.addAll(getLanguages());
     jamLanguageOverrideComboBox.setModel(languageModel);
+    detectedDisplaysList.setModel(detectedDisplaysModel);
 
     setInitialState();
 
@@ -1856,7 +1863,10 @@ public class PreferencesDialog extends AbeillePanel {
     loadDetectedDisplays();
   }
 
-  private void loadDetectedDisplays() {}
+  private void loadDetectedDisplays() {
+    detectedDisplaysModel.clear();
+    detectedDisplaysModel.addAll(HardwareTabUtils.getKnownDisplays());
+  }
 
   /** Utility method to create and set the selected item for LocalizedComboItem combo box models. */
   private ComboBoxModel<LocalizedComboItem> getLocalizedModel(
