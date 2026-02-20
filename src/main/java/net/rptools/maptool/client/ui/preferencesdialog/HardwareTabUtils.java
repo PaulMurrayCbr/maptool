@@ -21,6 +21,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import javax.swing.*;
+import javax.swing.event.EventListenerList;
 
 /**
  * A class that contains utility methods that interact with app preferences to store and retrieve
@@ -73,11 +74,52 @@ public class HardwareTabUtils {
    * time a map window is moved or made fullscreen. This means that it needs to be populated on
    * application startup. TODO: find out how to do something on application startup.
    */
-  static List<DisplayInfo> detectedDispayList =
-      Arrays.asList(
-          // TODO: remove these debugging items
-          new DisplayInfo("Display 1", 0, 0, 1920, 1080, true, false, 0, 0),
-          new DisplayInfo("Display 2", 1920, -50, 800, 600, true, true, 1920, 1080));
+  static List<DisplayInfo> detectedDispayList = Collections.emptyList();
+
+  /**
+   * Callbacks for things that are interested in changes to the list of detected displays.
+   */
+  static final EventListenerList detectedDisplayChangeListenerList = new EventListenerList();
+
+  /**
+   * Adapter for things that want to be informed when the list of displays is re-detected.
+   * Typically used as a lambda.
+   */
+  @FunctionalInterface
+  public interface DetectedDisplayChangeEventListener extends EventListener {
+    /**
+     * The display list has been updated. No information is passed, invoke {@link #getKnownDisplays()}
+     * or {@link #findDispayAt(int, int)}  to retrieve the new items.
+     */
+    void displayChangeDetected();
+  };
+
+  /**
+   * Registers a listener to be notified when the list of detected displays changes.
+   * The listener will be invoked whenever a re-detection of displays occurs.
+   *
+   * @param listener the {@link DetectedDisplayChangeEventListener} to register.
+   *                 Must not be null.
+   */
+  public static void addDetectedDisplayChangeListener(DetectedDisplayChangeEventListener listener) {
+    detectedDisplayChangeListenerList.add(DetectedDisplayChangeEventListener.class, listener);
+  }
+
+  /**
+   * Unregisters a listener from being notified when the list of detected displays changes.
+   *
+   * @param listener the {@link DetectedDisplayChangeEventListener} to unregister.
+   *                 Must not be null.
+   */
+  public static void removeDetectedDisplayChangeListener(DetectedDisplayChangeEventListener listener) {
+    detectedDisplayChangeListenerList.remove(DetectedDisplayChangeEventListener.class, listener);
+  }
+
+  private static void fireDetectedDisplayChange() {
+    for(DetectedDisplayChangeEventListener listener : detectedDisplayChangeListenerList.getListeners(DetectedDisplayChangeEventListener.class)) {
+      listener.displayChangeDetected();
+    }
+  }
 
   /**
    * Detects connected displays by querying the GraphicsEnvironment.
@@ -105,9 +147,6 @@ public class HardwareTabUtils {
             try {
               GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
               GraphicsDevice[] devices = ge.getScreenDevices();
-
-              // TODO REMOVE THIS DELAY
-              Thread.sleep(1000);
 
               ArrayList<DisplayInfo> detected = new ArrayList<>();
               boolean foundChanges = false;
@@ -166,8 +205,10 @@ public class HardwareTabUtils {
                                         || theSaved.detectedX != updatedInfo.detectedX
                                         || theSaved.detectedY != updatedInfo.detectedY
                                         || theSaved.detectedWidth != updatedInfo.detectedWidth
-                                        || theSaved.detectedHeight != updatedInfo.detectedHeight)
-                            .orElse(false);
+                                        || theSaved.detectedHeight != updatedInfo.detectedHeight
+                                        || !theSaved.isCurrentlyConnected
+                            )
+                            .orElse(true);
 
                 saved.ifPresent(savedList::remove);
               }
@@ -175,6 +216,11 @@ public class HardwareTabUtils {
               // the entries remaining in the savedList are no longer detected, but this may be
               // because
               // the display is currently unplugged. we will show them as not currently connected
+
+              // if any of the saved list items are saved as 'connected', then this is a change
+              if(savedList.stream().anyMatch(DisplayInfo::isCurrentlyConnected)) {
+                foundChanges = true;
+              }
 
               savedList.stream()
                   .map(
@@ -195,8 +241,11 @@ public class HardwareTabUtils {
 
               detectedDispayList = List.copyOf(detected);
 
-              final boolean finalFoundChanges = foundChanges;
+              if( foundChanges) {
+                SwingUtilities.invokeLater(HardwareTabUtils::fireDetectedDisplayChange);
+              }
 
+              final boolean finalFoundChanges = foundChanges;
               SwingUtilities.invokeLater(() -> callback.accept(finalFoundChanges));
             } catch (Exception e) {
               SwingUtilities.invokeLater(() -> callback.accept(false));
@@ -216,7 +265,7 @@ public class HardwareTabUtils {
   }
 
   /**
-   * Find the display curretly at point x,y
+   * Find the display currently at point x,y
    *
    * @return the display info, or null if no display is found.
    */
