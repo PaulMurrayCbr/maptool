@@ -73,11 +73,7 @@ public class HardwareTabUtils {
    * time a map window is moved or made fullscreen. This means that it needs to be populated on
    * application startup. TODO: find out how to do something on application startup.
    */
-  static List<DisplayInfo> detectedDispayList =
-      Arrays.asList(
-          // TODO: remove these debugging items
-          new DisplayInfo("Display 1", 0, 0, 1920, 1080, true, false, 0, 0),
-          new DisplayInfo("Display 2", 1920, -50, 800, 600, true, true, 1920, 1080));
+  static List<DisplayInfo> detectedDispayList = Collections.emptyList();
 
   /**
    * Detects connected displays by querying the GraphicsEnvironment.
@@ -105,9 +101,6 @@ public class HardwareTabUtils {
             try {
               GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
               GraphicsDevice[] devices = ge.getScreenDevices();
-
-              // TODO REMOVE THIS DELAY
-              Thread.sleep(1000);
 
               ArrayList<DisplayInfo> detected = new ArrayList<>();
               boolean foundChanges = false;
@@ -167,7 +160,7 @@ public class HardwareTabUtils {
                                         || theSaved.detectedY != updatedInfo.detectedY
                                         || theSaved.detectedWidth != updatedInfo.detectedWidth
                                         || theSaved.detectedHeight != updatedInfo.detectedHeight)
-                            .orElse(false);
+                            .orElse(true);
 
                 saved.ifPresent(savedList::remove);
               }

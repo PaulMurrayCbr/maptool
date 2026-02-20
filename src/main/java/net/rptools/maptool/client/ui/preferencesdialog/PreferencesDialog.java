@@ -28,7 +28,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.util.*;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -532,7 +531,8 @@ public class PreferencesDialog extends AbeillePanel {
   private final JList<HardwareTabUtils.DisplayInfo> detectedDisplaysList =
       (JList<HardwareTabUtils.DisplayInfo>) getList("detectedDisplaysList");
 
-  private final DefaultListModel<HardwareTabUtils.DisplayInfo> detectedDisplaysModel = new DefaultListModel<>();
+  private final DefaultListModel<HardwareTabUtils.DisplayInfo> detectedDisplaysModel =
+      new DefaultListModel<>();
 
   private final Consumer<JSpinner> setSpinnerEditorWidth =
       spinner -> {
