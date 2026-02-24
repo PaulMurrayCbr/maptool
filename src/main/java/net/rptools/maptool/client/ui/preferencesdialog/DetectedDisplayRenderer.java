@@ -21,7 +21,8 @@ import net.rptools.maptool.client.swing.AbeillePanel;
 public class DetectedDisplayRenderer extends AbeillePanel
     implements ListCellRenderer<HardwareTabUtils.DisplayInfo> {
 
-  JList<HardwareTabUtils.DisplayInfo> listComponent;
+  JLabel nameLabel;
+  JLabel descriptionLabel;
 
   public DetectedDisplayRenderer() {
     super(new DetectedDisplayRendererView().getRootComponent());
@@ -30,6 +31,8 @@ public class DetectedDisplayRenderer extends AbeillePanel
 
   /** Initalises component models, event listeners, etc. */
   private void initComponents() {
+    nameLabel = getLabel("nameLabel");
+    descriptionLabel = getLabel("descriptionLabel");
     setInitialState();
   }
 
@@ -48,11 +51,11 @@ public class DetectedDisplayRenderer extends AbeillePanel
     setOpaque(true);
 
     if (isSelected) {
-      setBackground(list.getSelectionBackground());
-      setForeground(list.getSelectionForeground());
+      setAllBackground(list.getSelectionBackground());
+      setAllForeground(list.getSelectionForeground());
     } else {
-      setBackground(list.getBackground());
-      setForeground(list.getForeground());
+      setAllBackground(list.getBackground());
+      setAllForeground(list.getForeground());
     }
 
     if (cellHasFocus) {
@@ -66,9 +69,31 @@ public class DetectedDisplayRenderer extends AbeillePanel
     return this;
   }
 
+  public void setAllBackground(Color c) {
+    super.setBackground(c);
+    nameLabel.setBackground(c);
+    descriptionLabel.setBackground(c);
+  }
+
+  public void setAllForeground(Color c) {
+    super.setForeground(c);
+    nameLabel.setForeground(c);
+    descriptionLabel.setForeground(c);
+  }
+
   void setValue(HardwareTabUtils.DisplayInfo value) {
     if (value == null) {
       value = HardwareTabUtils.DisplayInfo.NO_SCREEN;
     }
+
+    nameLabel.setText(value.idString());
+    descriptionLabel.setText(
+        value.detectedWidth()
+            + "\u00D7"
+            + value.detectedHeight()
+            + " @ "
+            + value.detectedX()
+            + ","
+            + value.detectedY());
   }
 }
