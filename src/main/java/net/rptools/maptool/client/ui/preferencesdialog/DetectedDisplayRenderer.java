@@ -21,6 +21,7 @@ import net.rptools.maptool.client.swing.AbeillePanel;
 public class DetectedDisplayRenderer extends AbeillePanel
     implements ListCellRenderer<HardwareTabUtils.DisplayInfo> {
 
+  JPanel mainContentPanel;
   JLabel nameLabel;
   JLabel descriptionLabel;
 
@@ -31,6 +32,7 @@ public class DetectedDisplayRenderer extends AbeillePanel
 
   /** Initalises component models, event listeners, etc. */
   private void initComponents() {
+    mainContentPanel = (JPanel) getComponent("mainContentPanel");
     nameLabel = getLabel("nameLabel");
     descriptionLabel = getLabel("descriptionLabel");
     setInitialState();
@@ -71,12 +73,13 @@ public class DetectedDisplayRenderer extends AbeillePanel
 
   public void setAllBackground(Color c) {
     super.setBackground(c);
-    nameLabel.setBackground(c);
-    descriptionLabel.setBackground(c);
+    // JLabels are transparent, so there's no need to set the background in them
+    mainContentPanel.setBackground(c);
   }
 
   public void setAllForeground(Color c) {
     super.setForeground(c);
+    mainContentPanel.setForeground(c);
     nameLabel.setForeground(c);
     descriptionLabel.setForeground(c);
   }
