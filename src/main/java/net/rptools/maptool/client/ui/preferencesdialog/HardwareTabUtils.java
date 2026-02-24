@@ -38,6 +38,11 @@ public class HardwareTabUtils {
       boolean useAspectRatioCorrection,
       int actualWidth,
       int actualHeight) {
+
+    // todo - get id string from resources
+    public static final DisplayInfo NO_SCREEN =
+        new DisplayInfo("No Screen", 0, 0, 1, 1, false, false, 1, 1);
+
     public DisplayInfo {
       if (detectedWidth <= 0) {
         throw new IllegalArgumentException("detected width must not be <= 0");

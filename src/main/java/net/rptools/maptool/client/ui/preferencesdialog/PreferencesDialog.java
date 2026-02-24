@@ -534,6 +534,8 @@ public class PreferencesDialog extends AbeillePanel {
   private final DefaultListModel<HardwareTabUtils.DisplayInfo> detectedDisplaysModel =
       new DefaultListModel<>();
 
+  DetectedDisplayRenderer detectedDisplayRenderer = new DetectedDisplayRenderer();
+
   private final Consumer<JSpinner> setSpinnerEditorWidth =
       spinner -> {
         Component mySpinnerEditor = spinner.getEditor();
@@ -883,7 +885,9 @@ public class PreferencesDialog extends AbeillePanel {
     DefaultComboBoxModel<String> languageModel = new DefaultComboBoxModel<String>();
     languageModel.addAll(getLanguages());
     jamLanguageOverrideComboBox.setModel(languageModel);
+
     detectedDisplaysList.setModel(detectedDisplaysModel);
+    detectedDisplaysList.setCellRenderer(detectedDisplayRenderer);
 
     setInitialState();
 
