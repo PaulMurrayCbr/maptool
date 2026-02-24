@@ -28,6 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -528,11 +529,10 @@ public class PreferencesDialog extends AbeillePanel {
   /** Button to detect displays and populate the displaysScrollPane. */
   private final JButton detectDisplaysButton = (JButton) getButton("detectDisplaysButton");
 
-  private final JList<HardwareTabUtils.DisplayInfo> detectedDisplaysList =
-      (JList<HardwareTabUtils.DisplayInfo>) getList("detectedDisplaysList");
+  private final JList<String> detectedDisplaysList =
+      (JList<String>) getList("detectedDisplaysList");
 
-  private final DefaultListModel<HardwareTabUtils.DisplayInfo> detectedDisplaysModel =
-      new DefaultListModel<>();
+  private final DetectedDisplaysListModel detectedDisplaysModel = new DetectedDisplaysListModel();
 
   private final Consumer<JSpinner> setSpinnerEditorWidth =
       spinner -> {
@@ -1677,7 +1677,7 @@ public class PreferencesDialog extends AbeillePanel {
               found -> {
                 detectDisplaysButton.setEnabled(true);
                 if (found) {
-                  loadDetectedDisplays();
+                  detectedDisplaysModel.loadDetectedDisplays(detectDisplaysButton);
                 }
               });
         });
@@ -1860,12 +1860,7 @@ public class PreferencesDialog extends AbeillePanel {
           ThemeSupport.setUseThemeColorsForChat(useThemeForChat.isSelected());
         });
 
-    loadDetectedDisplays();
-  }
-
-  private void loadDetectedDisplays() {
-    detectedDisplaysModel.clear();
-    detectedDisplaysModel.addAll(HardwareTabUtils.getKnownDisplays());
+    detectedDisplaysModel.loadDetectedDisplays(this);
   }
 
   /** Utility method to create and set the selected item for LocalizedComboItem combo box models. */
@@ -2047,5 +2042,47 @@ public class PreferencesDialog extends AbeillePanel {
   public void showDialog() {
     themeChanged = false;
     dialogFactory.display();
+  }
+}
+
+/**
+ * This class wraps the list of detected displays as returned by HardwareTabUtils.getKnownDisplays()
+ * and converts the DetectedDisplay to a string.
+ */
+class DetectedDisplaysListModel extends AbstractListModel<String> {
+  List<HardwareTabUtils.DisplayInfo> knownDisplays = Collections.emptyList();
+
+  @Override
+  public int getSize() {
+    return knownDisplays.size();
+  }
+
+  @Override
+  public String getElementAt(int index) {
+    final HardwareTabUtils.DisplayInfo displayInfo = knownDisplays.get(index);
+    // Question, do we want to display the display id, which might be meaningless to the user,
+    // or do we want to just display "Display 1", "Display 2" etc?
+    return displayInfo.idString()
+        + "\n"
+        + displayInfo.detectedWidth()
+        + "\u00D7"
+        + displayInfo.detectedHeight()
+        + " @ "
+        + displayInfo.detectedX()
+        + ","
+        + displayInfo.detectedY();
+  }
+
+  /**
+   * Reload displays from {@link HardwareTabUtils#getKnownDisplays()}
+   *
+   * @param source Event source to be passed on to listeners.
+   */
+  void loadDetectedDisplays(Object source) {
+    int oldSize = getSize();
+    knownDisplays = Collections.emptyList();
+    fireIntervalRemoved(source, 0, oldSize);
+    knownDisplays = HardwareTabUtils.getKnownDisplays();
+    fireIntervalAdded(source, 0, knownDisplays.size());
   }
 }

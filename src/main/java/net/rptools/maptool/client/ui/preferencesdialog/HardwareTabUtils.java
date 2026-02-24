@@ -38,6 +38,7 @@ public class HardwareTabUtils {
       boolean useAspectRatioCorrection,
       int actualWidth,
       int actualHeight) {
+
     public DisplayInfo {
       if (detectedWidth <= 0) {
         throw new IllegalArgumentException("detected width must not be <= 0");
@@ -204,6 +205,12 @@ public class HardwareTabUtils {
 
   private static void saveDisplaysToAppPreferences(List<DisplayInfo> detected) {}
 
+  /**
+   * The currently detected displays. This list is unmodifiable and can be used without copying. If
+   * displays are redetected, the list object is replaced with a new list.
+   *
+   * @return
+   */
   public static List<DisplayInfo> getKnownDisplays() {
     return detectedDispayList;
   }
