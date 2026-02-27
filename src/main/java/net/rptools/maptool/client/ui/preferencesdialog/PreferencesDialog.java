@@ -48,6 +48,8 @@ import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.events.PreferencesChanged;
 import net.rptools.maptool.client.functions.MediaPlayerAdapter;
 import net.rptools.maptool.client.swing.*;
+import net.rptools.maptool.client.ui.preferencesdialog.hardware.DetectedDisplayRendererView;
+import net.rptools.maptool.client.ui.preferencesdialog.hardware.HardwareTabUtils;
 import net.rptools.maptool.client.ui.theme.RessourceManager;
 import net.rptools.maptool.client.ui.theme.ThemeFontPreferences;
 import net.rptools.maptool.client.ui.theme.ThemeSupport;
@@ -534,7 +536,7 @@ public class PreferencesDialog extends AbeillePanel {
   private final DefaultListModel<HardwareTabUtils.DisplayInfo> detectedDisplaysModel =
       new DefaultListModel<>();
 
-  DetectedDisplayRenderer detectedDisplayRenderer = new DetectedDisplayRenderer();
+  DetectedDisplayRendererView detectedDisplayRendererView = new DetectedDisplayRendererView();
 
   private final Consumer<JSpinner> setSpinnerEditorWidth =
       spinner -> {
@@ -887,7 +889,7 @@ public class PreferencesDialog extends AbeillePanel {
     jamLanguageOverrideComboBox.setModel(languageModel);
 
     detectedDisplaysList.setModel(detectedDisplaysModel);
-    detectedDisplaysList.setCellRenderer(detectedDisplayRenderer);
+    detectedDisplaysList.setCellRenderer(detectedDisplayRendererView);
 
     setInitialState();
 

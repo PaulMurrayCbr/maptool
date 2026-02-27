@@ -12,34 +12,22 @@
  * <http://www.gnu.org/licenses/> and specifically the Affero license
  * text at <http://www.gnu.org/licenses/agpl.html>.
  */
-package net.rptools.maptool.client.ui.preferencesdialog;
+package net.rptools.maptool.client.ui.preferencesdialog.hardware;
 
 import java.awt.*;
 import javax.swing.*;
-import net.rptools.maptool.client.swing.AbeillePanel;
 
-public class DetectedDisplayRenderer extends AbeillePanel
-    implements ListCellRenderer<HardwareTabUtils.DisplayInfo> {
+public class DetectedDisplayRendererView implements ListCellRenderer<HardwareTabUtils.DisplayInfo> {
 
-  JPanel mainContentPanel;
-  JLabel nameLabel;
-  JLabel descriptionLabel;
+  // injected by the intellij form framework
 
-  public DetectedDisplayRenderer() {
-    super(new DetectedDisplayRendererView().getRootComponent());
-    initComponents();
+  private JPanel mainPanel;
+  private JLabel nameLabel;
+  private JLabel descriptionLabel;
+
+  public JComponent getRootComponent() {
+    return mainPanel;
   }
-
-  /** Initalises component models, event listeners, etc. */
-  private void initComponents() {
-    mainContentPanel = (JPanel) getComponent("mainContentPanel");
-    nameLabel = getLabel("nameLabel");
-    descriptionLabel = getLabel("descriptionLabel");
-    setInitialState();
-  }
-
-  /** Initializes component content. */
-  private void setInitialState() {}
 
   @Override
   public Component getListCellRendererComponent(
@@ -48,9 +36,9 @@ public class DetectedDisplayRenderer extends AbeillePanel
       int index,
       boolean isSelected,
       boolean cellHasFocus) {
-    setFont(list.getFont());
-    setEnabled(list.isEnabled());
-    setOpaque(true);
+    mainPanel.setFont(list.getFont());
+    mainPanel.setEnabled(list.isEnabled());
+    mainPanel.setOpaque(true);
 
     if (isSelected) {
       setAllBackground(list.getSelectionBackground());
@@ -61,30 +49,17 @@ public class DetectedDisplayRenderer extends AbeillePanel
     }
 
     if (cellHasFocus) {
-      setBorder(UIManager.getBorder("List.focusCellHighlightBorder"));
+      mainPanel.setBorder(UIManager.getBorder("List.focusCellHighlightBorder"));
     } else {
-      setBorder(UIManager.getBorder("List.cellNoFocusBorder"));
+      mainPanel.setBorder(UIManager.getBorder("List.cellNoFocusBorder"));
     }
 
     setValue(value);
 
-    return this;
+    return mainPanel;
   }
 
-  public void setAllBackground(Color c) {
-    super.setBackground(c);
-    // JLabels are transparent, so there's no need to set the background in them
-    mainContentPanel.setBackground(c);
-  }
-
-  public void setAllForeground(Color c) {
-    super.setForeground(c);
-    mainContentPanel.setForeground(c);
-    nameLabel.setForeground(c);
-    descriptionLabel.setForeground(c);
-  }
-
-  void setValue(HardwareTabUtils.DisplayInfo value) {
+  public void setValue(HardwareTabUtils.DisplayInfo value) {
     if (value == null) {
       value = HardwareTabUtils.DisplayInfo.NO_SCREEN;
     }
@@ -98,5 +73,17 @@ public class DetectedDisplayRenderer extends AbeillePanel
             + value.detectedX()
             + ","
             + value.detectedY());
+  }
+
+  private void setAllBackground(Color c) {
+    mainPanel.setBackground(c);
+    // JLabels are transparent, so there's no need to set the background in them
+    mainPanel.setBackground(c);
+  }
+
+  private void setAllForeground(Color c) {
+    mainPanel.setForeground(c);
+    nameLabel.setForeground(c);
+    descriptionLabel.setForeground(c);
   }
 }

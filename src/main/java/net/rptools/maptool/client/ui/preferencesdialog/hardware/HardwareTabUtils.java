@@ -12,7 +12,7 @@
  * <http://www.gnu.org/licenses/> and specifically the Affero license
  * text at <http://www.gnu.org/licenses/agpl.html>.
  */
-package net.rptools.maptool.client.ui.preferencesdialog;
+package net.rptools.maptool.client.ui.preferencesdialog.hardware;
 
 import java.awt.*;
 import java.util.*;
