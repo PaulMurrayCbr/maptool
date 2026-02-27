@@ -22,6 +22,7 @@ public class DisplayPane {
   private JList<HardwareTabUtils.DisplayInfo> displaysList;
   private JButton detectDisplaysBtn;
   private AspectCorrectionPane aspectCorrectionPanel;
+  private JLabel selectedLbl;
 
   private final DefaultListModel<HardwareTabUtils.DisplayInfo> detectedDisplaysModel =
       new DefaultListModel<>();
@@ -31,6 +32,13 @@ public class DisplayPane {
     displaysList.setCellRenderer(new DetectedDisplayListRenderer());
 
     displaysList.addListSelectionListener(aspectCorrectionPanel);
+
+    displaysList.addListSelectionListener(
+        e -> {
+          if (e.getValueIsAdjusting()) return;
+          HardwareTabUtils.DisplayInfo selected = displaysList.getSelectedValue();
+          selectedLbl.setText(selected == null ? " " : selected.idString());
+        });
 
     detectDisplaysBtn.addActionListener(
         e -> {
