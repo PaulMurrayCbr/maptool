@@ -48,8 +48,6 @@ import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.events.PreferencesChanged;
 import net.rptools.maptool.client.functions.MediaPlayerAdapter;
 import net.rptools.maptool.client.swing.*;
-import net.rptools.maptool.client.ui.preferencesdialog.hardware.DetectedDisplayRendererView;
-import net.rptools.maptool.client.ui.preferencesdialog.hardware.HardwareTabUtils;
 import net.rptools.maptool.client.ui.theme.RessourceManager;
 import net.rptools.maptool.client.ui.theme.ThemeFontPreferences;
 import net.rptools.maptool.client.ui.theme.ThemeSupport;
@@ -527,17 +525,6 @@ public class PreferencesDialog extends AbeillePanel {
 
   private final JTextField installDirTextField = getTextField("installDir");
 
-  /** Button to detect displays and populate the displaysScrollPane. */
-  private final JButton detectDisplaysButton = (JButton) getButton("detectDisplaysButton");
-
-  private final JList<HardwareTabUtils.DisplayInfo> detectedDisplaysList =
-      (JList<HardwareTabUtils.DisplayInfo>) getList("detectedDisplaysList");
-
-  private final DefaultListModel<HardwareTabUtils.DisplayInfo> detectedDisplaysModel =
-      new DefaultListModel<>();
-
-  DetectedDisplayRendererView detectedDisplayRendererView = new DetectedDisplayRendererView();
-
   private final Consumer<JSpinner> setSpinnerEditorWidth =
       spinner -> {
         Component mySpinnerEditor = spinner.getEditor();
@@ -887,9 +874,6 @@ public class PreferencesDialog extends AbeillePanel {
     DefaultComboBoxModel<String> languageModel = new DefaultComboBoxModel<String>();
     languageModel.addAll(getLanguages());
     jamLanguageOverrideComboBox.setModel(languageModel);
-
-    detectedDisplaysList.setModel(detectedDisplaysModel);
-    detectedDisplaysList.setCellRenderer(detectedDisplayRendererView);
 
     setInitialState();
 
@@ -1675,18 +1659,6 @@ public class PreferencesDialog extends AbeillePanel {
     for (JSpinner spinner : spinners) {
       setSpinnerEditorWidth.accept(spinner);
     }
-
-    detectDisplaysButton.addActionListener(
-        e -> {
-          detectDisplaysButton.setEnabled(false);
-          HardwareTabUtils.detectDisplays(
-              found -> {
-                detectDisplaysButton.setEnabled(true);
-                if (found) {
-                  loadDetectedDisplays();
-                }
-              });
-        });
   }
 
   /**
@@ -1865,13 +1837,6 @@ public class PreferencesDialog extends AbeillePanel {
         l -> {
           ThemeSupport.setUseThemeColorsForChat(useThemeForChat.isSelected());
         });
-
-    loadDetectedDisplays();
-  }
-
-  private void loadDetectedDisplays() {
-    detectedDisplaysModel.clear();
-    detectedDisplaysModel.addAll(HardwareTabUtils.getKnownDisplays());
   }
 
   /** Utility method to create and set the selected item for LocalizedComboItem combo box models. */

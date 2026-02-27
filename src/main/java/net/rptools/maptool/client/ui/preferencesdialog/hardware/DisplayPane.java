@@ -19,15 +19,40 @@ import javax.swing.*;
 public class DisplayPane {
   // injected by intellij forms framework
   private JPanel mainPanel;
-  private JList displaysList;
+  private JList<HardwareTabUtils.DisplayInfo> displaysList;
   private JButton detectDisplaysBtn;
-  private DisplayAspectCorrectionPane displayAspectCorrectionPane1;
+  private AspectCorrectionPane aspectCorrectionPanel;
+
+  private final DefaultListModel<HardwareTabUtils.DisplayInfo> detectedDisplaysModel =
+      new DefaultListModel<>();
 
   DisplayPane() {
-    displaysList.addListSelectionListener(displayAspectCorrectionPane1);
+    displaysList.setModel(detectedDisplaysModel);
+    displaysList.setCellRenderer(new DetectedDisplayListRenderer());
+
+    displaysList.addListSelectionListener(aspectCorrectionPanel);
+
+    detectDisplaysBtn.addActionListener(
+        e -> {
+          detectDisplaysBtn.setEnabled(false);
+          HardwareTabUtils.detectDisplays(
+              found -> {
+                detectDisplaysBtn.setEnabled(true);
+                if (found) {
+                  loadDetectedDisplays();
+                }
+              });
+        });
+
+    loadDetectedDisplays();
   }
 
   public JPanel getRootComponent() {
     return mainPanel;
+  }
+
+  private void loadDetectedDisplays() {
+    detectedDisplaysModel.clear();
+    detectedDisplaysModel.addAll(HardwareTabUtils.getKnownDisplays());
   }
 }

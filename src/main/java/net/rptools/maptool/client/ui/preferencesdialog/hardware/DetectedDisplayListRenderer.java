@@ -17,7 +17,7 @@ package net.rptools.maptool.client.ui.preferencesdialog.hardware;
 import java.awt.*;
 import javax.swing.*;
 
-public class DetectedDisplayRendererView implements ListCellRenderer<HardwareTabUtils.DisplayInfo> {
+public class DetectedDisplayListRenderer implements ListCellRenderer<HardwareTabUtils.DisplayInfo> {
 
   // injected by the intellij form framework
 

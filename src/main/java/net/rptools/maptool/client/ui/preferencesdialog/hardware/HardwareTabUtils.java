@@ -36,12 +36,13 @@ public class HardwareTabUtils {
       int detectedHeight,
       boolean isCurrentlyConnected,
       boolean useAspectRatioCorrection,
+      boolean fullscreenOnly,
       int actualWidth,
       int actualHeight) {
 
     // todo - get id string from resources
     public static final DisplayInfo NO_SCREEN =
-        new DisplayInfo("No Screen", 0, 0, 1, 1, false, false, 1, 1);
+        new DisplayInfo("No Screen", 0, 0, 1, 1, false, false, false, 1, 1);
 
     public DisplayInfo {
       if (detectedWidth <= 0) {
@@ -150,6 +151,7 @@ public class HardwareTabUtils {
                         bounds.height,
                         true,
                         saved.map(DisplayInfo::useAspectRatioCorrection).orElse(false),
+                        saved.map(DisplayInfo::fullscreenOnly).orElse(false),
                         saved.map(DisplayInfo::actualWidth).orElse(bounds.width),
                         saved.map(DisplayInfo::actualHeight).orElse(bounds.height));
 
@@ -185,6 +187,7 @@ public class HardwareTabUtils {
                               saved.detectedHeight,
                               false,
                               saved.useAspectRatioCorrection,
+                              saved.fullscreenOnly,
                               saved.actualWidth,
                               saved.actualHeight))
                   .forEach(detected::add);
