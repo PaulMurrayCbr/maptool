@@ -17,11 +17,10 @@ package net.rptools.maptool.client.ui.preferencesdialog.hardware;
 import javax.swing.*;
 
 /**
- * A DisplayPane shows preference settings for attached displays. It displays a JList of detected displays and allows
- * editing of preferences for the selected display.
- * Currently there is one sub-pane, which allows editing of aspect correction settings.
+ * A DisplayPane shows preference settings for attached displays. It displays a JList of detected
+ * displays and allows editing of preferences for the selected display. Currently there is one
+ * sub-pane, which allows editing of aspect correction settings.
  */
-
 public class DisplayPane {
   // injected by intellij forms framework
   private JPanel mainPanel;

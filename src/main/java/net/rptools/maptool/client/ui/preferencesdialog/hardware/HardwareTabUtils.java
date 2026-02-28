@@ -15,6 +15,7 @@
 package net.rptools.maptool.client.ui.preferencesdialog.hardware;
 
 import java.awt.*;
+import java.math.BigInteger;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -23,27 +24,43 @@ import java.util.function.Consumer;
 import javax.swing.*;
 
 /**
- * A class that contains utility methods that interact with app preferences to store and retrieve
- * information about hardware.
+ * A class that contains utility methods that interact with app preferences and the graphic
+ * environement to store and retrieve information about hardware.
  */
 public class HardwareTabUtils {
 
-  public static record DisplayInfo(
+  public record DisplayInfo(
       String idString,
       int detectedX,
       int detectedY,
+      /**
+       * @throws IllegalArgumentException if <= 0
+       */
       int detectedWidth,
+      /**
+       * @throws IllegalArgumentException if <= 0
+       */
       int detectedHeight,
+      /**
+       * This value is ignored, the detected cgd is calculated from the detected width and height
+       */
+      int detectedGcd,
       boolean isCurrentlyConnected,
       boolean useAspectRatioCorrection,
       boolean fullscreenOnly,
-      int actualWidth,
-      int actualHeight) {
+      /** if <=0, this is calculated from the detected width and height */
+      int aspectX,
+      /** if <=0, this is calculated from the detected width and height */
+      int aspectY) {
 
     // todo - get id string from resources
     public static final DisplayInfo NO_SCREEN =
         new DisplayInfo("No Screen", 0, 0, 1, 1, false, false, false, 1, 1);
 
+    /**
+     * In this constructor, the passed value of detectedGcd is ignored - it is calculated from the
+     * detected width and height
+     */
     public DisplayInfo {
       if (detectedWidth <= 0) {
         throw new IllegalArgumentException("detected width must not be <= 0");
@@ -51,12 +68,57 @@ public class HardwareTabUtils {
       if (detectedHeight <= 0) {
         throw new IllegalArgumentException("detected height must not be <= 0");
       }
-      if (actualWidth() <= 0) {
-        actualWidth = detectedWidth;
+
+      detectedGcd =
+          BigInteger.valueOf(detectedWidth).gcd(BigInteger.valueOf(detectedHeight)).intValue();
+
+      if (aspectX <= 0) {
+        aspectX = detectedWidth / detectedGcd;
       }
-      if (actualHeight <= 0) {
-        actualHeight = detectedHeight;
+      if (aspectY <= 0) {
+        aspectY = detectedHeight / detectedGcd;
       }
+    }
+
+    public DisplayInfo(
+        String idString,
+        int detectedX,
+        int detectedY,
+        /**
+         * @throws IllegalArgumentException if <= 0
+         */
+        int detectedWidth,
+        /**
+         * @throws IllegalArgumentException if <= 0
+         */
+        int detectedHeight,
+        boolean isCurrentlyConnected,
+        boolean useAspectRatioCorrection,
+        boolean fullscreenOnly,
+        /** if <=0, this is calculated from the detected width and height */
+        int aspectX,
+        /** if <=0, this is calculated from the detected width and height */
+        int aspectY) {
+      this(
+          idString,
+          detectedX,
+          detectedY,
+          detectedWidth,
+          detectedHeight,
+          1, // passing 1 as detectedGcd, because the default constructor recalculates it.
+          isCurrentlyConnected,
+          useAspectRatioCorrection,
+          fullscreenOnly,
+          aspectX,
+          aspectY);
+    }
+
+    public int detectedAspectX() {
+      return detectedWidth / detectedGcd;
+    }
+
+    public int detectedAspectY() {
+      return detectedHeight / detectedGcd;
     }
 
     public String toString() {
@@ -70,6 +132,10 @@ public class HardwareTabUtils {
           + detectedX
           + ","
           + detectedY
+          + " - "
+          + detectedAspectX()
+          + ":"
+          + detectedAspectY()
           + "]";
     }
   }
@@ -142,6 +208,11 @@ public class HardwareTabUtils {
                                                 && d.detectedHeight == bounds.height)
                                     .findFirst());
 
+                int gcd =
+                    BigInteger.valueOf(bounds.width)
+                        .gcd(BigInteger.valueOf(bounds.height))
+                        .intValue();
+
                 DisplayInfo updatedInfo =
                     new DisplayInfo(
                         device.getIDstring(),
@@ -152,8 +223,8 @@ public class HardwareTabUtils {
                         true,
                         saved.map(DisplayInfo::useAspectRatioCorrection).orElse(false),
                         saved.map(DisplayInfo::fullscreenOnly).orElse(false),
-                        saved.map(DisplayInfo::actualWidth).orElse(bounds.width),
-                        saved.map(DisplayInfo::actualHeight).orElse(bounds.height));
+                        saved.map(DisplayInfo::aspectX).orElse(bounds.width / gcd),
+                        saved.map(DisplayInfo::aspectY).orElse(bounds.height / gcd));
 
                 detected.add(updatedInfo);
 
@@ -188,8 +259,8 @@ public class HardwareTabUtils {
                               false,
                               saved.useAspectRatioCorrection,
                               saved.fullscreenOnly,
-                              saved.actualWidth,
-                              saved.actualHeight))
+                              saved.aspectX,
+                              saved.aspectY))
                   .forEach(detected::add);
 
               saveDisplaysToAppPreferences(detected);

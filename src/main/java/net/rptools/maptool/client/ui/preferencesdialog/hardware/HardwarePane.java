@@ -16,10 +16,7 @@ package net.rptools.maptool.client.ui.preferencesdialog.hardware;
 
 import javax.swing.*;
 
-/**
- * The "hardware" tab in the PreferencesDialog.
- */
-
+/** The "hardware" tab in the PreferencesDialog. */
 public class HardwarePane {
   private JPanel mainPane;
 

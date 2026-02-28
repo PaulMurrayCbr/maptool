@@ -18,10 +18,7 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-/**
- * Edit and save aspect correction settings for a display selected in a JList
- */
-
+/** Edit and save aspect correction settings for a display selected in a JList */
 public class AspectCorrectionPane implements ListSelectionListener {
   // injected by intellij forms framework
   private JPanel mainPanel;
@@ -29,17 +26,17 @@ public class AspectCorrectionPane implements ListSelectionListener {
   private JButton saveButton;
   private JCheckBox useAspectCorrectionChk;
   private JCheckBox fullscreenOnlyChk;
-  private JSpinner actualWidthSpn;
-  private JSpinner actualHeightSpn;
+  private JSpinner aspectXSpn;
+  private JSpinner aspectYSpn;
   private JLabel detectedSizeLbl;
 
   boolean dirty = false;
 
   AspectCorrectionPane() {
-    ((SpinnerNumberModel) actualWidthSpn.getModel()).setMinimum(1);
-    ((SpinnerNumberModel) actualWidthSpn.getModel()).setMaximum(10000);
-    ((SpinnerNumberModel) actualHeightSpn.getModel()).setMinimum(1);
-    ((SpinnerNumberModel) actualHeightSpn.getModel()).setMaximum(10000);
+    ((SpinnerNumberModel) aspectXSpn.getModel()).setMinimum(1);
+    ((SpinnerNumberModel) aspectXSpn.getModel()).setMaximum(10000);
+    ((SpinnerNumberModel) aspectYSpn.getModel()).setMinimum(1);
+    ((SpinnerNumberModel) aspectYSpn.getModel()).setMaximum(10000);
     clearSelected();
   }
 
@@ -64,8 +61,8 @@ public class AspectCorrectionPane implements ListSelectionListener {
   void clearSelected() {
     useAspectCorrectionChk.setEnabled(false);
     fullscreenOnlyChk.setEnabled(false);
-    actualWidthSpn.setEnabled(false);
-    actualHeightSpn.setEnabled(false);
+    aspectXSpn.setEnabled(false);
+    aspectYSpn.setEnabled(false);
     resetButton.setEnabled(false);
     saveButton.setEnabled(false);
 
@@ -73,16 +70,16 @@ public class AspectCorrectionPane implements ListSelectionListener {
 
     useAspectCorrectionChk.setSelected(false);
     fullscreenOnlyChk.setSelected(false);
-    actualWidthSpn.setValue(1);
-    actualHeightSpn.setValue(1);
+    aspectXSpn.setValue(1);
+    aspectYSpn.setValue(1);
     detectedSizeLbl.setText("");
   }
 
   void setSelected(HardwareTabUtils.DisplayInfo selected) {
     useAspectCorrectionChk.setEnabled(true);
     fullscreenOnlyChk.setEnabled(true);
-    actualWidthSpn.setEnabled(true);
-    actualHeightSpn.setEnabled(true);
+    aspectXSpn.setEnabled(true);
+    aspectYSpn.setEnabled(true);
     resetButton.setEnabled(false);
     saveButton.setEnabled(false);
 
@@ -90,8 +87,15 @@ public class AspectCorrectionPane implements ListSelectionListener {
 
     useAspectCorrectionChk.setSelected(selected.useAspectRatioCorrection());
     fullscreenOnlyChk.setSelected(selected.fullscreenOnly());
-    detectedSizeLbl.setText(selected.detectedWidth() + "x" + selected.detectedHeight());
-    actualWidthSpn.setValue(selected.actualWidth());
-    actualHeightSpn.setValue(selected.actualHeight());
+    detectedSizeLbl.setText(
+        selected.detectedWidth()
+            + "x"
+            + selected.detectedHeight()
+            + " - "
+            + selected.detectedAspectX()
+            + ":"
+            + selected.detectedAspectY());
+    aspectXSpn.setValue(selected.aspectX());
+    aspectYSpn.setValue(selected.aspectY());
   }
 }
