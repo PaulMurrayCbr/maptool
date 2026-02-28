@@ -17,6 +17,18 @@ package net.rptools.maptool.client.ui.preferencesdialog.hardware;
 import java.awt.*;
 import javax.swing.*;
 
+/**
+ * The DetectedDisplayListRenderer class implements a custom renderer for displaying
+ * {@link HardwareTabUtils.DisplayInfo} objects within a {@link JList}.
+ *
+ * This class customizes the appearance and layout of the list cell by defining how each
+ * {@link HardwareTabUtils.DisplayInfo} object should be represented in terms of text and style.
+ *
+ * It uses a {@link JPanel} as the root component for rendering the cell, along with sub-components
+ * like {@link JLabel} for displaying the display name and description. The list cell's background
+ * and foreground colors adapt based on the selection and focus state of the component.
+ */
+
 public class DetectedDisplayListRenderer implements ListCellRenderer<HardwareTabUtils.DisplayInfo> {
 
   // injected by the intellij form framework

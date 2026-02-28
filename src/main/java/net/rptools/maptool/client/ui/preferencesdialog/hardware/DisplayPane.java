@@ -16,13 +16,18 @@ package net.rptools.maptool.client.ui.preferencesdialog.hardware;
 
 import javax.swing.*;
 
+/**
+ * A DisplayPane shows preference settings for attached displays. It displays a JList of detected displays and allows
+ * editing of preferences for the selected display.
+ * Currently there is one sub-pane, which allows editing of aspect correction settings.
+ */
+
 public class DisplayPane {
   // injected by intellij forms framework
   private JPanel mainPanel;
   private JList<HardwareTabUtils.DisplayInfo> displaysList;
   private JButton detectDisplaysBtn;
   private AspectCorrectionPane aspectCorrectionPanel;
-  private JLabel selectedLbl;
 
   private final DefaultListModel<HardwareTabUtils.DisplayInfo> detectedDisplaysModel =
       new DefaultListModel<>();
@@ -32,13 +37,6 @@ public class DisplayPane {
     displaysList.setCellRenderer(new DetectedDisplayListRenderer());
 
     displaysList.addListSelectionListener(aspectCorrectionPanel);
-
-    displaysList.addListSelectionListener(
-        e -> {
-          if (e.getValueIsAdjusting()) return;
-          HardwareTabUtils.DisplayInfo selected = displaysList.getSelectedValue();
-          selectedLbl.setText(selected == null ? " " : selected.idString());
-        });
 
     detectDisplaysBtn.addActionListener(
         e -> {

@@ -18,6 +18,10 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+/**
+ * Edit and save aspect correction settings for a display selected in a JList
+ */
+
 public class AspectCorrectionPane implements ListSelectionListener {
   // injected by intellij forms framework
   private JPanel mainPanel;
