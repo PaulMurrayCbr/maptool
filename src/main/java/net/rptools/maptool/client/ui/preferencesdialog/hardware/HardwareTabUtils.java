@@ -14,6 +14,8 @@
  */
 package net.rptools.maptool.client.ui.preferencesdialog.hardware;
 
+import org.jspecify.annotations.NonNull;
+
 import java.awt.*;
 import java.math.BigInteger;
 import java.util.*;
@@ -125,7 +127,7 @@ public class HardwareTabUtils {
       return detectedHeight / detectedGcd;
     }
 
-    public String toString() {
+    public @NonNull String toString() {
       return "[\""
           + idString
           + "\" "
@@ -169,7 +171,7 @@ public class HardwareTabUtils {
   public static Future<?> detectDisplays(Consumer<Boolean> callback) {
 
     // make a copy of the currently saved list, as we will be modifying it.
-    List<DisplayInfo> savedList = new ArrayList(loadDisplaysFromAppPreferences());
+    List<DisplayInfo> savedList = new ArrayList<>(loadDisplaysFromAppPreferences());
 
     try (var executor = Executors.newSingleThreadExecutor()) {
       return executor.submit(
@@ -181,9 +183,7 @@ public class HardwareTabUtils {
               ArrayList<DisplayInfo> detected = new ArrayList<>();
               boolean foundChanges = false;
 
-              for (int i = 0; i < devices.length; i++) {
-                GraphicsDevice device = devices[i];
-
+              for (GraphicsDevice device : devices) {
                 if (device.getType() != GraphicsDevice.TYPE_RASTER_SCREEN) {
                   continue;
                 }
@@ -235,14 +235,14 @@ public class HardwareTabUtils {
                 foundChanges =
                     foundChanges
                         || saved
-                            .map(
-                                theSaved ->
-                                    !theSaved.idString.equals(updatedInfo.idString)
-                                        || theSaved.detectedX != updatedInfo.detectedX
-                                        || theSaved.detectedY != updatedInfo.detectedY
-                                        || theSaved.detectedWidth != updatedInfo.detectedWidth
-                                        || theSaved.detectedHeight != updatedInfo.detectedHeight)
-                            .orElse(true);
+                        .map(
+                            theSaved ->
+                                !theSaved.idString.equals(updatedInfo.idString)
+                                    || theSaved.detectedX != updatedInfo.detectedX
+                                    || theSaved.detectedY != updatedInfo.detectedY
+                                    || theSaved.detectedWidth != updatedInfo.detectedWidth
+                                    || theSaved.detectedHeight != updatedInfo.detectedHeight)
+                        .orElse(true);
 
                 saved.ifPresent(savedList::remove);
               }
@@ -285,7 +285,9 @@ public class HardwareTabUtils {
     return detectedDispayList;
   }
 
-  private static void saveDisplaysToAppPreferences(List<DisplayInfo> detected) {}
+  private static void saveDisplaysToAppPreferences(List<DisplayInfo> detected) {
+    throw new UnsupportedOperationException("Not yet implemented");
+  }
 
   public static List<DisplayInfo> getKnownDisplays() {
     return detectedDispayList;
