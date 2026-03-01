@@ -16,6 +16,7 @@ package net.rptools.maptool.client.ui.preferencesdialog.hardware;
 
 import org.jspecify.annotations.NonNull;
 
+import javax.swing.*;
 import java.awt.*;
 import java.math.BigInteger;
 import java.util.*;
@@ -23,13 +24,19 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
-import javax.swing.*;
+import java.util.stream.IntStream;
 
 /**
  * A class that contains utility methods that interact with app preferences and the graphic
  * environement to store and retrieve information about hardware.
  */
 public class HardwareTabUtils {
+
+  /**
+   * this is a utility class with static methods.
+   */
+  private HardwareTabUtils() {
+  }
 
   public record DisplayInfo(
       String idString,
@@ -144,6 +151,14 @@ public class HardwareTabUtils {
           + detectedAspectY()
           + "]";
     }
+
+    public boolean samePositionAs(Rectangle bounds) {
+      return bounds.x == detectedX && bounds.y == detectedY;
+    }
+
+    public boolean sameBoundsAs(Rectangle bounds) {
+      return bounds.x == detectedX && bounds.y == detectedY && bounds.width == detectedWidth && bounds.height == detectedHeight;
+    }
   }
 
   /**
@@ -166,7 +181,7 @@ public class HardwareTabUtils {
    *
    * @param callback callback invoked when display detection has completed.
    * @return a future that can be used to check the status of the display detection. If the Future
-   *     is cancelled, the callback will be invoked with false.
+   * is cancelled, the callback will be invoked with false.
    */
   public static Future<?> detectDisplays(Consumer<Boolean> callback) {
 
@@ -190,32 +205,9 @@ public class HardwareTabUtils {
 
                 final Rectangle bounds = device.getDefaultConfiguration().getBounds();
 
-                // if this detected device matches one of the currently saved devices, then
-                // get its preference settings.
-                // we match if the id matches, and if that doesn't work then we match if there's a
-                // saved
-                // device in exactly the same location. This hopefully catches the situation
-                // where the device gets a different ID each time the app is started.
+                OptionalInt savedIndex = matchDisplay(device, savedList);
 
-                Optional<DisplayInfo> saved =
-                    savedList.stream()
-                        .filter(d -> d.idString.equals(device.getIDstring()))
-                        .findFirst()
-                        .or(
-                            () ->
-                                savedList.stream()
-                                    .filter(
-                                        d ->
-                                            d.detectedX == bounds.x
-                                                && d.detectedY == bounds.y
-                                                && d.detectedWidth == bounds.width
-                                                && d.detectedHeight == bounds.height)
-                                    .findFirst());
-
-                int gcd =
-                    BigInteger.valueOf(bounds.width)
-                        .gcd(BigInteger.valueOf(bounds.height))
-                        .intValue();
+                Optional<DisplayInfo> saved = savedIndex.stream().mapToObj(savedList::get).findFirst();
 
                 DisplayInfo updatedInfo =
                     new DisplayInfo(
@@ -227,8 +219,9 @@ public class HardwareTabUtils {
                         true,
                         saved.map(DisplayInfo::useAspectRatioCorrection).orElse(false),
                         saved.map(DisplayInfo::fullscreenOnly).orElse(false),
-                        saved.map(DisplayInfo::aspectX).orElse(bounds.width / gcd),
-                        saved.map(DisplayInfo::aspectY).orElse(bounds.height / gcd));
+                        // if the aspect is 0:0, the constructor will calculate it
+                        saved.map(DisplayInfo::aspectX).orElse(0),
+                        saved.map(DisplayInfo::aspectY).orElse(0));
 
                 detected.add(updatedInfo);
 
@@ -281,7 +274,9 @@ public class HardwareTabUtils {
     }
   }
 
+  // TODO: implement this
   private static List<DisplayInfo> loadDisplaysFromAppPreferences() {
+
     return detectedDispayList;
   }
 
@@ -294,7 +289,7 @@ public class HardwareTabUtils {
   }
 
   /**
-   * Find the display curretly at point x,y
+   * Find the display currently at point x,y
    *
    * @return the display info, or null if no display is found.
    */
@@ -309,4 +304,73 @@ public class HardwareTabUtils {
         .findFirst()
         .orElse(null);
   }
+
+
+  @FunctionalInterface
+  private interface DisplayMatcher {
+    boolean matches(GraphicsDevice find, DisplayInfo info);
+  }
+
+  /**
+   * A series of display matchers in order of best "fit".
+   * These are used by {@link #matchDisplay(GraphicsDevice, List)} until a unique match is found
+   */
+  private static final DisplayMatcher[] DISPLAY_MATCHERS_SEQUENCE = {
+      (find, info) -> info.idString.equals(find.getIDstring()),
+      (find, info) -> info.idString.equals(find.getIDstring()) && info.samePositionAs(find.getDefaultConfiguration().getBounds()),
+      (find, info) -> info.idString.equals(find.getIDstring()) && info.sameBoundsAs(find.getDefaultConfiguration().getBounds()),
+      (find, info) -> info.samePositionAs(find.getDefaultConfiguration().getBounds()),
+      (find, info) -> info.sameBoundsAs(find.getDefaultConfiguration().getBounds())
+  };
+
+  /**
+   * Find the best match of a display in a list.
+   * We try the predicates in DISPLAY_MATCHERS_SEQUENCE, first looking for a unique match, then
+   * looking for a first match.
+   *
+   * @param find The display that we are looking for.
+   * @param list The list of displays to search.
+   * @return the index of the match, or -1 if no match found
+   */
+  public static OptionalInt matchDisplay(final GraphicsDevice find, final List<DisplayInfo> list) {
+    // find the first unique match
+
+    OptionalInt findUnique = Arrays.stream(DISPLAY_MATCHERS_SEQUENCE)
+        .map(matcher -> {
+              // we run through the list twice, but this method is not heavily used so
+              // optimisation is not required
+
+              OptionalInt first = IntStream.range(0, list.size())
+                  .filter(i -> matcher.matches(find, list.get(i)))
+                  .findFirst();
+
+              OptionalInt second = IntStream.range(0, list.size())
+                  .filter(i -> matcher.matches(find, list.get(i)))
+                  .skip(1)
+                  .findFirst();
+
+              if (first.isPresent() && second.isEmpty()) {
+                return first;
+              } else {
+                return OptionalInt.empty();
+              }
+            }
+        )
+        .flatMapToInt(OptionalInt::stream)
+        .findFirst();
+
+    if (findUnique.isPresent()) return findUnique;
+
+    // find any match
+
+    return Arrays.stream(DISPLAY_MATCHERS_SEQUENCE)
+        .map(matcher ->
+            IntStream.range(0, list.size())
+                .filter(i -> matcher.matches(find, list.get(i)))
+                .findFirst()
+        )
+        .flatMapToInt(OptionalInt::stream)
+        .findFirst();
+  }
+
 }
