@@ -15,6 +15,8 @@
 package net.rptools.maptool.client.ui.preferencesdialog.hardware;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -30,7 +32,7 @@ public class AspectCorrectionPane implements ListSelectionListener {
   private JSpinner aspectYSpn;
   private JLabel detectedSizeLbl;
 
-  boolean dirty = false;
+  HardwareTabUtils.DisplayInfo selected;
 
   AspectCorrectionPane() {
     ((SpinnerNumberModel) aspectXSpn.getModel()).setMinimum(1);
@@ -38,6 +40,15 @@ public class AspectCorrectionPane implements ListSelectionListener {
     ((SpinnerNumberModel) aspectYSpn.getModel()).setMinimum(1);
     ((SpinnerNumberModel) aspectYSpn.getModel()).setMaximum(10000);
     clearSelected();
+
+    ChangeListener changeListener = this::checkChange;
+
+    useAspectCorrectionChk.addChangeListener(changeListener);
+    fullscreenOnlyChk.addChangeListener(changeListener);
+    aspectXSpn.addChangeListener(changeListener);
+    aspectYSpn.addChangeListener(changeListener);
+
+    resetButton.addActionListener(e -> loadDisplayInfo());
   }
 
   public JPanel getRootComponent() {
@@ -59,6 +70,9 @@ public class AspectCorrectionPane implements ListSelectionListener {
   }
 
   void clearSelected() {
+    selected = HardwareTabUtils.DisplayInfo.NO_SCREEN;
+    loadDisplayInfo();
+
     useAspectCorrectionChk.setEnabled(false);
     fullscreenOnlyChk.setEnabled(false);
     aspectXSpn.setEnabled(false);
@@ -66,16 +80,13 @@ public class AspectCorrectionPane implements ListSelectionListener {
     resetButton.setEnabled(false);
     saveButton.setEnabled(false);
 
-    dirty = false;
-
-    useAspectCorrectionChk.setSelected(false);
-    fullscreenOnlyChk.setSelected(false);
-    aspectXSpn.setValue(1);
-    aspectYSpn.setValue(1);
-    detectedSizeLbl.setText("");
+    detectedSizeLbl.setText(" ");
   }
 
   void setSelected(HardwareTabUtils.DisplayInfo selected) {
+    this.selected = selected;
+    loadDisplayInfo();
+
     useAspectCorrectionChk.setEnabled(true);
     fullscreenOnlyChk.setEnabled(true);
     aspectXSpn.setEnabled(true);
@@ -83,10 +94,6 @@ public class AspectCorrectionPane implements ListSelectionListener {
     resetButton.setEnabled(false);
     saveButton.setEnabled(false);
 
-    dirty = false;
-
-    useAspectCorrectionChk.setSelected(selected.useAspectRatioCorrection());
-    fullscreenOnlyChk.setSelected(selected.fullscreenOnly());
     detectedSizeLbl.setText(
         selected.detectedWidth()
             + "x"
@@ -95,7 +102,32 @@ public class AspectCorrectionPane implements ListSelectionListener {
             + selected.detectedAspectX()
             + ":"
             + selected.detectedAspectY());
+  }
+
+  void loadDisplayInfo() {
+    useAspectCorrectionChk.setSelected(selected.useAspectRatioCorrection());
+    fullscreenOnlyChk.setSelected(selected.fullscreenOnly());
     aspectXSpn.setValue(selected.aspectX());
     aspectYSpn.setValue(selected.aspectY());
+  }
+
+  void checkChange(ChangeEvent e) {
+    boolean hasChange = false;
+
+    if (useAspectCorrectionChk.isSelected() != selected.useAspectRatioCorrection()) {
+      hasChange = true;
+    }
+    if (fullscreenOnlyChk.isSelected() != selected.fullscreenOnly()) {
+      hasChange = true;
+    }
+    if ((Integer) aspectXSpn.getValue() != selected.aspectX()) {
+      hasChange = true;
+    }
+    if ((Integer) aspectYSpn.getValue() != selected.aspectY()) {
+      hasChange = true;
+    }
+
+    saveButton.setEnabled(hasChange);
+    resetButton.setEnabled(hasChange);
   }
 }

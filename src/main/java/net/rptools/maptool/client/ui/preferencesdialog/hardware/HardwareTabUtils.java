@@ -62,6 +62,10 @@ public class HardwareTabUtils {
      * detected width and height
      */
     public DisplayInfo {
+      if (idString == null) {
+        idString = "";
+      }
+
       if (detectedWidth <= 0) {
         throw new IllegalArgumentException("detected width must not be <= 0");
       }
