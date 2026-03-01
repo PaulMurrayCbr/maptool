@@ -38,28 +38,41 @@ public class HardwareTabUtils {
   private HardwareTabUtils() {
   }
 
+
+  /**
+   * Information about display preferences.
+   * <p>Constriuctors throw IllegalArgumentException if:
+   * <ul>
+   *   <li>detectedWidth <= 0</li>
+   *   <li>detectedHeight <= 0</li>
+   * </ul>
+   * <p>
+   * If the aspect ratio is <=0, then it is calculated from the detected width and height.
+   *
+   * @param idString                 From {@link GraphicsDevice}
+   * @param detectedX                From {@link GraphicsDevice}
+   * @param detectedY                From {@link GraphicsDevice}
+   * @param detectedWidth            From {@link GraphicsDevice}
+   * @param detectedHeight           From  {@link GraphicsDevice}
+   * @param detectedGcd              This value is ignored, the detected cgd is calculated from the detected width and height
+   * @param isCurrentlyConnected     false if this is a value stored in preferences matching no connected device
+   * @param useAspectRatioCorrection From user preferences.
+   * @param fullscreenOnly           From user preferences.
+   * @param aspectX                  From user preferences. if <=0, this is calculated from the detected width and height.
+   * @param aspectY                  From user preferences. if <=0, this is calculated from the detected width and height.
+   */
+
   public record DisplayInfo(
       String idString,
       int detectedX,
       int detectedY,
-      /**
-       * @throws IllegalArgumentException if <= 0
-       */
       int detectedWidth,
-      /**
-       * @throws IllegalArgumentException if <= 0
-       */
       int detectedHeight,
-      /**
-       * This value is ignored, the detected cgd is calculated from the detected width and height
-       */
       int detectedGcd,
       boolean isCurrentlyConnected,
       boolean useAspectRatioCorrection,
       boolean fullscreenOnly,
-      /** if <=0, this is calculated from the detected width and height */
       int aspectX,
-      /** if <=0, this is calculated from the detected width and height */
       int aspectY) {
 
     // todo - get id string from resources
@@ -97,20 +110,12 @@ public class HardwareTabUtils {
         String idString,
         int detectedX,
         int detectedY,
-        /**
-         * @throws IllegalArgumentException if <= 0
-         */
         int detectedWidth,
-        /**
-         * @throws IllegalArgumentException if <= 0
-         */
         int detectedHeight,
         boolean isCurrentlyConnected,
         boolean useAspectRatioCorrection,
         boolean fullscreenOnly,
-        /** if <=0, this is calculated from the detected width and height */
         int aspectX,
-        /** if <=0, this is calculated from the detected width and height */
         int aspectY) {
       this(
           idString,
