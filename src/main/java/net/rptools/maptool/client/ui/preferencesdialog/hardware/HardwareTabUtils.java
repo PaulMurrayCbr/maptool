@@ -28,7 +28,7 @@ import java.util.stream.IntStream;
 
 /**
  * A class that contains utility methods that interact with app preferences and the graphic
- * environement to store and retrieve information about hardware.
+ * environment to store and retrieve information about hardware.
  */
 public class HardwareTabUtils {
 
@@ -41,7 +41,7 @@ public class HardwareTabUtils {
 
   /**
    * Information about display preferences.
-   * <p>Constriuctors throw IllegalArgumentException if:
+   * <p>Constructors throw IllegalArgumentException if:
    * <ul>
    *   <li>detectedWidth <= 0</li>
    *   <li>detectedHeight <= 0</li>
@@ -285,6 +285,7 @@ public class HardwareTabUtils {
     return detectedDispayList;
   }
 
+  // TODO: implement this
   private static void saveDisplaysToAppPreferences(List<DisplayInfo> detected) {
     throw new UnsupportedOperationException("Not yet implemented");
   }
