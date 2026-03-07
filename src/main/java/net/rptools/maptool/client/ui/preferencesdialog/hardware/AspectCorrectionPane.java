@@ -19,9 +19,13 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /** Edit and save aspect correction settings for a display selected in a JList */
 public class AspectCorrectionPane implements ListSelectionListener {
+  private static final Logger log = LogManager.getLogger(AspectCorrectionPane.class);
+
   // injected by intellij forms framework
   private JPanel mainPanel;
   private JButton resetButton;
@@ -32,7 +36,10 @@ public class AspectCorrectionPane implements ListSelectionListener {
   private JSpinner aspectYSpn;
   private JLabel detectedSizeLbl;
 
+  /** We trust that the JList being supplied to us matches the known displays in HarwareTabUtils. */
   HardwareTabUtils.DisplayInfo selected;
+
+  int selectedIndex;
 
   AspectCorrectionPane() {
     ((SpinnerNumberModel) aspectXSpn.getModel()).setMinimum(1);
@@ -49,6 +56,8 @@ public class AspectCorrectionPane implements ListSelectionListener {
     aspectYSpn.addChangeListener(changeListener);
 
     resetButton.addActionListener(e -> loadDisplayInfo());
+
+    saveButton.addActionListener(e -> saveDisplayInfo());
   }
 
   public JPanel getRootComponent() {
@@ -61,6 +70,7 @@ public class AspectCorrectionPane implements ListSelectionListener {
 
     JList<HardwareTabUtils.DisplayInfo> list = (JList<HardwareTabUtils.DisplayInfo>) e.getSource();
     HardwareTabUtils.DisplayInfo selected = list.getSelectedValue();
+    selectedIndex = list.getSelectedIndex();
 
     if (selected == null) {
       clearSelected();
@@ -109,6 +119,17 @@ public class AspectCorrectionPane implements ListSelectionListener {
     fullscreenOnlyChk.setSelected(selected.fullscreenOnly());
     aspectXSpn.setValue(selected.aspectX());
     aspectYSpn.setValue(selected.aspectY());
+  }
+
+  void saveDisplayInfo() {
+    if (selected == null) return;
+
+    HardwareTabUtils.updateDisplayAspectCorrectionPreferences(
+        selectedIndex,
+        useAspectCorrectionChk.isSelected(),
+        fullscreenOnlyChk.isSelected(),
+        (Integer) aspectXSpn.getValue(),
+        (Integer) aspectYSpn.getValue());
   }
 
   void checkChange(ChangeEvent e) {
