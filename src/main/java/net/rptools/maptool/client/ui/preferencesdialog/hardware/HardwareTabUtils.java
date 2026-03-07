@@ -433,6 +433,17 @@ public class HardwareTabUtils {
     fireDisplayChanged(displayIndex);
   }
 
+  public static void removeDisplay(int displayIndex) {
+    // TODO: implement saving the updated preferences
+    log.warn("saving the updated preferences not yet implemented");
+
+    ArrayList<DisplayInfo> newList = new ArrayList<>(detectedDispayList);
+    newList.remove(displayIndex);
+    detectedDispayList = List.copyOf(newList);
+
+    fireDisplayListChanged();
+  }
+
   /**
    * Find the display currently at point x,y
    *

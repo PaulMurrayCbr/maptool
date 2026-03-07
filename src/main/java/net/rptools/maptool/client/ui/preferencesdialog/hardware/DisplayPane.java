@@ -31,6 +31,7 @@ public class DisplayPane implements HardwareTabUtils.KnownDisplaysListener {
   private JList<HardwareTabUtils.DisplayInfo> displaysList;
   private JButton detectDisplaysBtn;
   private AspectCorrectionPane aspectCorrectionPanel;
+  private JButton removeBtn;
 
   private final DefaultListModel<HardwareTabUtils.DisplayInfo> detectedDisplaysModel =
       new DefaultListModel<>();
@@ -40,8 +41,24 @@ public class DisplayPane implements HardwareTabUtils.KnownDisplaysListener {
     displaysList.setCellRenderer(new DetectedDisplayListRenderer());
     displaysList.addListSelectionListener(aspectCorrectionPanel);
 
+    displaysList.addListSelectionListener(
+        e -> {
+          if (!e.getValueIsAdjusting()) {
+            removeBtn.setEnabled(displaysList.getSelectedIndex() >= 0);
+          }
+        });
+
     detectDisplaysBtn.addActionListener(e -> HardwareTabUtils.detectDisplays());
     detectDisplaysBtn.setEnabled(!HardwareTabUtils.isDisplaysListBeingUpdated());
+
+    removeBtn.addActionListener(
+        e -> {
+          int index = displaysList.getSelectedIndex();
+          if (index >= 0) {
+            HardwareTabUtils.removeDisplay(index);
+          }
+        });
+    removeBtn.setEnabled(false);
 
     loadDetectedDisplays();
   }
