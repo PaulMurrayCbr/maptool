@@ -402,6 +402,10 @@ interface PreferenceType<T> {
         storerMap = Map.of();
       }
 
+      if (defaultValueMap == null) {
+        defaultValueMap = Map.of();
+      }
+
       RecordComponent[] components = valueClass.getRecordComponents();
 
       this.nElements = components.length;
@@ -410,12 +414,6 @@ interface PreferenceType<T> {
       this.parameterTypes = new Class<?>[nElements];
       this.storers = new PreferenceType<?>[nElements];
       this.defaultValues = new Supplier[nElements];
-
-      try {
-        this.constructor = valueClass.getDeclaredConstructor(parameterTypes);
-      } catch (NoSuchMethodException e) {
-        throw new RuntimeException(e);
-      }
 
       final MethodHandles.Lookup lookup = MethodHandles.lookup();
 
@@ -451,6 +449,13 @@ interface PreferenceType<T> {
         storers[i] = storer;
         defaultValues[i] = defaultValueMap.getOrDefault(name, () -> null);
       }
+
+      try {
+        this.constructor = valueClass.getDeclaredConstructor(parameterTypes);
+      } catch (NoSuchMethodException e) {
+        throw new RuntimeException(e);
+      }
+
     }
 
     @Override
