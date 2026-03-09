@@ -14,6 +14,9 @@
  */
 package net.rptools.maptool.util.preferences;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.awt.Color;
 import java.io.File;
 import java.lang.invoke.MethodHandle;
@@ -34,6 +37,8 @@ import java.util.prefs.Preferences;
  * @param <T> The preference value type, as for {@link Preference}.
  */
 interface PreferenceType<T> {
+  static Logger log = LoggerFactory.getLogger(PreferenceType.class);
+
   Class<T> getValueClass();
 
   /**
@@ -304,6 +309,15 @@ interface PreferenceType<T> {
 
     @Override
     public void set(Preferences storage, String key, T[] value) {
+      if(value == null) {
+        // this will leave garbage lying about, but I don't know what the
+        // preferencetype setters might have done in the preferences,
+        // and preferenceType has no 'clear()' method.
+        // all I can do is remove my own key
+        storage.remove(key + ".length");
+        return;
+      }
+
       storage.putInt(key + ".length", value.length);
       for (int i = 0; i < value.length; i++) {
         elementType.set(storage, key + "." + i, value[i]);
@@ -313,8 +327,14 @@ interface PreferenceType<T> {
     @Override
     public T[] get(Preferences storage, String key, Supplier<T[]> defaultValue) {
       int length = storage.getInt(key + ".length", -1);
-      if (length <= 0) {
-        return defaultValue.get();
+
+      if (length < 0) {
+        if(defaultValue == null) {
+          return null;
+        }
+        else {
+          return defaultValue.get();
+        }
       }
 
       T[] value = (T[]) Array.newInstance(elementType.getValueClass(), length);
@@ -440,6 +460,15 @@ interface PreferenceType<T> {
 
     @Override
     public void set(Preferences storage, String key, T value) {
+      if(value == null) {
+        // this will leave garbage lying about, but I don't know what the
+        // preferencetype setters might have done in the preferences,
+        // and preferenceType has no 'clear()' method.
+        // all I can do is remove my own key
+        storage.remove(key + ".class");
+        return;
+      }
+
       storage.put(key + ".class", valueClass.getSimpleName());
       for (int i = 0; i < nElements; i++) {
         try {
