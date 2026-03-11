@@ -25,6 +25,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.RecordComponent;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.prefs.Preferences;
@@ -377,6 +378,28 @@ interface PreferenceType<T> {
 
     private final Constructor<T> constructor;
 
+    private static final Supplier nullSupplier = () -> null;
+    private static final Supplier intSupplier = () -> 0;
+    private static final Supplier longSupplier = () -> 0L;
+    private static final Supplier floatSupplier = () -> 0.0f;
+    private static final Supplier doubleSupplier = () -> 0.0;
+    private static final Supplier booleanSupplier = () -> false;
+
+    /**
+     * @see #RecordType(Class, Map, Map)
+     */
+    public RecordType(Class<T> valueClass) {
+      this(valueClass, null, null);
+    }
+
+    /**
+     * @see #RecordType(Class, Map, Map)
+     */
+    public RecordType(Class<T> valueClass,
+                      Map<String, PreferenceType> storerMap) {
+      this(valueClass, storerMap, null);
+    }
+
     /**
      *
      * <p>
@@ -387,7 +410,8 @@ interface PreferenceType<T> {
      * primitive types.
      * </p>
      * <p>
-     * The storers and default values are declared as raw types, because correctly declaring the generics is difficult and adds no value.
+     * The storers and default values are declared as raw types, because correctly declaring the generics is
+     * difficult and adds no value.
      * </p>
      *
      * @param valueClass
@@ -422,6 +446,7 @@ interface PreferenceType<T> {
         final String name = component.getName();
 
         PreferenceType<?> storer = storerMap.get(name);
+        Supplier defaultValue = defaultValueMap.get(name);
 
         if (storer == null) {
           if (Boolean.TYPE.equals(component.getType())) {
@@ -439,6 +464,22 @@ interface PreferenceType<T> {
           }
         }
 
+        if (defaultValue == null) {
+          if (Boolean.TYPE.equals(component.getType())) {
+            defaultValue = booleanSupplier;
+          } else if (Integer.TYPE.equals(component.getType())) {
+            defaultValue = intSupplier;
+          } else if (Long.TYPE.equals(component.getType())) {
+            defaultValue = longSupplier;
+          } else if (Float.TYPE.equals(component.getType())) {
+            defaultValue = floatSupplier;
+          } else if (Double.TYPE.equals(component.getType())) {
+            defaultValue = doubleSupplier;
+          } else {
+            defaultValue = nullSupplier;
+          }
+        }
+
         names[i] = name;
         parameterTypes[i] = components[i].getType();
         try {
@@ -447,7 +488,7 @@ interface PreferenceType<T> {
           throw new RuntimeException(e);
         }
         storers[i] = storer;
-        defaultValues[i] = defaultValueMap.getOrDefault(name, () -> null);
+        defaultValues[i] = defaultValue;
       }
 
       try {
@@ -465,7 +506,7 @@ interface PreferenceType<T> {
 
     @Override
     public void set(Preferences storage, String key, T value) {
-      if(value == null) {
+      if (value == null) {
         // this will leave garbage lying about, but I don't know what the
         // preferencetype setters might have done in the preferences,
         // and preferenceType has no 'clear()' method.

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.awt.*;
 import java.io.File;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.prefs.Preferences;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,7 +20,7 @@ public class PreferenceTypeRecordTest {
 
   SimpleRecord simpleRecord = new SimpleRecord("John Doe", 30, true, 1.75, new File("/path/to/file"));
 
-  public record RecordWithTrickyType(String name, Color color) {
+  public record RecordWithObject(String name, Color color) {
 
   }
 
@@ -41,18 +42,18 @@ public class PreferenceTypeRecordTest {
   }
 
   @Test
-  void testCantInstantiateTrickyTypeWithoutStorer() {
+  void testCantInstantiateObjectWithoutStorer() {
     try {
-      RecordType<RecordWithTrickyType> recordType = new RecordType<>(RecordWithTrickyType.class, null, null);
-      fail("construction of TrickyType record without a storer should fail");
+      RecordType<RecordWithObject> recordType = new RecordType<>(RecordWithObject.class, null, null);
+      fail("construction of RecordWithObject without a storer should fail");
     } catch (IllegalArgumentException e) {
-      assertEquals("No preference type provided for element color of type Color in record RecordWithTrickyType.", e.getMessage());
+      assertEquals("No preference type provided for element color of type Color in record RecordWithObject.", e.getMessage());
     }
   }
 
   @Test
-  void testCanInstantiateTrickyTypeWithStorer() {
-    RecordType<RecordWithTrickyType> recordType = new RecordType<>(RecordWithTrickyType.class,
+  void testCanInstantiateObjectWithStorer() {
+    RecordType<RecordWithObject> recordType = new RecordType<>(RecordWithObject.class,
         Map.of("color", new ColorType(false)),
         null);
     assertNotNull(recordType);
@@ -85,21 +86,79 @@ public class PreferenceTypeRecordTest {
   }
 
   @Test
-  void trickySave() {
+  void objectSave() {
     Preferences storage = mock(Preferences.class);
-    RecordType<RecordWithTrickyType> recordType = new RecordType<>(RecordWithTrickyType.class,
+    RecordType<RecordWithObject> recordType = new RecordType<>(RecordWithObject.class,
         Map.of("color", new ColorType(false)),
         null);
 
-    RecordWithTrickyType rtt = new RecordWithTrickyType("John Doe", Color.RED);
+    RecordWithObject rtt = new RecordWithObject("John Doe", Color.RED);
 
     recordType.set(storage, "ABC.DEF", rtt);
 
-    verify(storage, times(1)).put("ABC.DEF.class", "RecordWithTrickyType");
+    verify(storage, times(1)).put("ABC.DEF.class", "RecordWithObject");
     verify(storage, times(1)).put("ABC.DEF.name", rtt.name());
     verify(storage, times(1)).putInt("ABC.DEF.color", Color.RED.getRGB());
     verifyNoMoreInteractions(storage);
   }
 
+  @Test
+  void simpleLoad() {
+    Preferences storage = mock(Preferences.class);
+
+    RecordType<SimpleRecord> recordType = new RecordType<>(SimpleRecord.class, null, null);
+
+    when(storage.get(eq("ABC.DEF.class"), any())).thenReturn("SimpleRecord");
+    when(storage.get(eq("ABC.DEF.name"), any())).thenReturn(simpleRecord.name());
+    when(storage.getInt(eq("ABC.DEF.age"), anyInt())).thenReturn(simpleRecord.age());
+    when(storage.getBoolean(eq("ABC.DEF.isMale"), anyBoolean())).thenReturn(simpleRecord.isMale());
+    when(storage.getDouble(eq("ABC.DEF.height"), anyDouble())).thenReturn(simpleRecord.height());
+    when(storage.get(eq("ABC.DEF.file"), any())).thenReturn(simpleRecord.file().toString());
+
+    SimpleRecord result = recordType.get(storage, "ABC.DEF", null);
+
+    verify(storage, times(1)).get(eq("ABC.DEF.class"), any());
+    verify(storage, times(1)).get(eq("ABC.DEF.name"), any());
+    verify(storage, times(1)).getInt(eq("ABC.DEF.age"), anyInt());
+    verify(storage, times(1)).getBoolean(eq("ABC.DEF.isMale"), anyBoolean());
+    verify(storage, times(1)).getDouble(eq("ABC.DEF.height"), anyDouble());
+    verify(storage, times(1)).get(eq("ABC.DEF.class"), any());
+    verify(storage, times(1)).get(eq("ABC.DEF.file"), any());
+    verifyNoMoreInteractions(storage);
+
+    assertEquals(simpleRecord, result);
+  }
+
+  @Test
+  void simpleLoadWithDefault() {
+    Preferences storage = mock(Preferences.class);
+
+    when(storage.get(eq("ABC.DEF.class"), any())).thenReturn("SimpleRecord");
+    when(storage.get(eq("ABC.DEF.name"), any())).thenAnswer(invocation -> invocation.getArgument(1));
+
+    RecordType<SimpleRecord> recordType = new RecordType<>(SimpleRecord.class, null,
+        Map.of("name", () -> "default name")
+    );
+
+    SimpleRecord result = recordType.get(storage, "ABC.DEF", null);
+
+    assertEquals("default name", result.name());
+  }
+
+  @Test
+  void simpleLoadWithDefaultAndData() {
+    Preferences storage = mock(Preferences.class);
+
+    when(storage.get(eq("ABC.DEF.class"), any())).thenReturn("SimpleRecord");
+    when(storage.get(eq("ABC.DEF.name"), any())).thenReturn(simpleRecord.name());
+
+    RecordType<SimpleRecord> recordType = new RecordType<>(SimpleRecord.class, null,
+        Map.of("name", () -> "default name")
+    );
+
+    SimpleRecord result = recordType.get(storage, "ABC.DEF", null);
+
+    assertEquals(simpleRecord.name(), result.name());
+  }
 
 }
