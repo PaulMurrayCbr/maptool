@@ -145,11 +145,11 @@ public abstract class AbstractDrawing implements Drawable, ImageObserver {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("name=").append(getName()).append(";");
-    sb.append("layer=").append(getLayer()).append(";");
-    sb.append("id=").append(getId()).append(";");
-    return sb.toString();
+    return "name=" + getName() + ";" + "layer=" + getLayer() + ";" + "id=" + getId() + ";";
+  }
+
+  public String toNonLocalisedString() {
+    return "name=" + getName() + ";" + "layer=" + getLayer().name() + ";" + "id=" + getId() + ";";
   }
 
   ////
