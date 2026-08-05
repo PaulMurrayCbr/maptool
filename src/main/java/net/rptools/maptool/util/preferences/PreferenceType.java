@@ -14,9 +14,6 @@
  */
 package net.rptools.maptool.util.preferences;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.awt.Color;
 import java.io.File;
 import java.lang.invoke.MethodHandle;
@@ -25,10 +22,11 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.RecordComponent;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.prefs.Preferences;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Defines how preferences with a value of type {@code T} can be read and written.
@@ -274,23 +272,20 @@ interface PreferenceType<T> {
 
   /**
    * Reads and writes arrays of {@code T}.
-   * <p>
-   * Arrays are stored using a series of preferences<br>
+   *
+   * <p>Arrays are stored using a series of preferences<br>
    * <tt>&lt;<i>key</i>&gt;.length</tt><br>
    * <tt>&lt;<i>key</i>&gt;.0</tt><br>
    * <tt>&lt;<i>key</i>&gt;.1</tt><br>
    * <tt>&lt;<i>key</i>&gt;.2</tt><br>
    * <tt>&lt;<i>key</i>&gt;. &hellip;</tt><br>
    * <tt>&lt;<i>key</i>&gt;.&lt;<i>length-1</i>&gt;</tt>
-   * </p>
-   * <p>
-   * The signature for get() does not permit us to supply a default value for array elements,
-   * so when reading an array, if a  preference is not found for an array element, null is used.
-   * </p>
+   *
+   * <p>The signature for get() does not permit us to supply a default value for array elements, so
+   * when reading an array, if a preference is not found for an array element, null is used.
    *
    * @param <T> the type of the array elements.
    */
-
   class ArrayType<T> implements PreferenceType<T[]> {
 
     private final PreferenceType<T> elementType;
@@ -298,9 +293,9 @@ interface PreferenceType<T> {
 
     public ArrayType(PreferenceType<T> elementType) {
       this.elementType = elementType;
-      this.valueClass = (Class<T[]>) java.lang.reflect.Array
-          .newInstance(elementType.getValueClass(), 0)
-          .getClass();
+      this.valueClass =
+          (Class<T[]>)
+              java.lang.reflect.Array.newInstance(elementType.getValueClass(), 0).getClass();
     }
 
     @Override
@@ -310,7 +305,7 @@ interface PreferenceType<T> {
 
     @Override
     public void set(Preferences storage, String key, T[] value) {
-      if(value == null) {
+      if (value == null) {
         // this will leave garbage lying about, but I don't know what the
         // preferencetype setters might have done in the preferences,
         // and preferenceType has no 'clear()' method.
@@ -330,10 +325,9 @@ interface PreferenceType<T> {
       int length = storage.getInt(key + ".length", -1);
 
       if (length < 0) {
-        if(defaultValue == null) {
+        if (defaultValue == null) {
           return null;
-        }
-        else {
+        } else {
           return defaultValue.get();
         }
       }
@@ -348,22 +342,17 @@ interface PreferenceType<T> {
   }
 
   /**
-   * Reads and writes records.
-   * Records are stored using a series of preferences<br>
+   * Reads and writes records. Records are stored using a series of preferences<br>
    * <tt>&lt;<i>key</i>&gt;.class</tt><br>
-   * <tt>&lt;<i>key</i>&gt;.&lt;<i>Element 0</i>&gt;</tt>
-   * <tt>&lt;<i>key</i>&gt;.&lt;<i>Element 1</i>&gt;</tt>
-   * <tt>&lt;<i>key</i>&gt;.&lt;<i>Element 2</i>&gt;</tt>
+   * <tt>&lt;<i>key</i>&gt;.&lt;<i>Element 0</i>&gt;</tt> <tt>&lt;<i>key</i>&gt;.&lt;<i>Element
+   * 1</i>&gt;</tt> <tt>&lt;<i>key</i>&gt;.&lt;<i>Element 2</i>&gt;</tt>
    * <tt>&lt;<i>key</i>&gt;.&hellip;</tt><br>
-   * </p>
-   * <p>
-   * As a record will never have an element named 'class', <tt>&lt;<i>key</i>&gt;.class</tt>
-   * is used to check whether or not the preference exists.
-   * </p>
+   *
+   * <p>As a record will never have an element named 'class', <tt>&lt;<i>key</i>&gt;.class</tt> is
+   * used to check whether or not the preference exists.
    *
    * @param <T> the record type.
    */
-
   class RecordType<T extends Record> implements PreferenceType<T> {
 
     private final Class<T> valueClass;
@@ -395,31 +384,27 @@ interface PreferenceType<T> {
     /**
      * @see #RecordType(Class, Map, Map)
      */
-    public RecordType(Class<T> valueClass,
-                      Map<String, PreferenceType> storerMap) {
+    public RecordType(Class<T> valueClass, Map<String, PreferenceType> storerMap) {
       this(valueClass, storerMap, null);
     }
 
     /**
+     * The elements of the record are stored using a map of PreferenceType objects, keyed by element
+     * name. If the type of the element is Boolean, Integer, Double String, or File, then a default
+     * storer will be used. If there is no storer for an element, then an IllegalArgumentException
+     * is thrown. If there is no defaultValue for an element, then ()-&gt;null is used. This may
+     * cause issues for primitive types.
      *
-     * <p>
-     * The elements of the record are stored using a map of PreferenceType objects, keyed by element name.
-     * If the type of the element is Boolean, Integer, Double String, or File, then a default storer will be used.
-     * If there is no storer for an element, then an IllegalArgumentException is thrown.
-     * If there is no defaultValue for an element, then ()-&gt;null is used. This may cause issues for
-     * primitive types.
-     * </p>
-     * <p>
-     * The storers and default values are declared as raw types, because correctly declaring the generics is
-     * difficult and adds no value.
-     * </p>
+     * <p>The storers and default values are declared as raw types, because correctly declaring the
+     * generics is difficult and adds no value.
      *
      * @param valueClass
      * @param storerMap
      */
-    public RecordType(Class<T> valueClass,
-                      Map<String, PreferenceType> storerMap,
-                      Map<String, Supplier> defaultValueMap) {
+    public RecordType(
+        Class<T> valueClass,
+        Map<String, PreferenceType> storerMap,
+        Map<String, Supplier> defaultValueMap) {
       this.valueClass = valueClass;
 
       if (storerMap == null) {
@@ -460,7 +445,14 @@ interface PreferenceType<T> {
           } else if (File.class.equals(component.getType())) {
             storer = new FileType();
           } else {
-            throw new IllegalArgumentException("No preference type provided for element " + name + " of type " + component.getType().getSimpleName() + " in record " + valueClass.getSimpleName() + ".");
+            throw new IllegalArgumentException(
+                "No preference type provided for element "
+                    + name
+                    + " of type "
+                    + component.getType().getSimpleName()
+                    + " in record "
+                    + valueClass.getSimpleName()
+                    + ".");
           }
         }
 
@@ -496,7 +488,6 @@ interface PreferenceType<T> {
       } catch (NoSuchMethodException e) {
         throw new RuntimeException(e);
       }
-
     }
 
     @Override
@@ -547,5 +538,4 @@ interface PreferenceType<T> {
       }
     }
   }
-
 }

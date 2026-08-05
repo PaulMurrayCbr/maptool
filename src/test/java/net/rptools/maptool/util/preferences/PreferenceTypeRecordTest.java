@@ -1,29 +1,37 @@
+/*
+ * This software Copyright by the RPTools.net development team, and
+ * licensed under the Affero GPL Version 3 or, at your option, any later
+ * version.
+ *
+ * MapTool Source Code is distributed in the hope that it will be
+ * useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * You should have received a copy of the GNU Affero General Public
+ * License * along with this source Code.  If not, please visit
+ * <http://www.gnu.org/licenses/> and specifically the Affero license
+ * text at <http://www.gnu.org/licenses/agpl.html>.
+ */
 package net.rptools.maptool.util.preferences;
-
-import net.rptools.maptool.util.preferences.PreferenceType.*;
-import org.junit.jupiter.api.Test;
-
-import java.awt.*;
-import java.io.File;
-import java.util.Map;
-import java.util.function.Supplier;
-import java.util.prefs.Preferences;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.awt.*;
+import java.io.File;
+import java.util.Map;
+import java.util.prefs.Preferences;
+import net.rptools.maptool.util.preferences.PreferenceType.*;
+import org.junit.jupiter.api.Test;
+
 public class PreferenceTypeRecordTest {
 
-  public record SimpleRecord(String name, int age, boolean isMale, double height, File file) {
+  public record SimpleRecord(String name, int age, boolean isMale, double height, File file) {}
 
-  }
+  SimpleRecord simpleRecord =
+      new SimpleRecord("John Doe", 30, true, 1.75, new File("/path/to/file"));
 
-  SimpleRecord simpleRecord = new SimpleRecord("John Doe", 30, true, 1.75, new File("/path/to/file"));
-
-  public record RecordWithObject(String name, Color color) {
-
-  }
-
+  public record RecordWithObject(String name, Color color) {}
 
   @Test
   void testRecord() {
@@ -44,18 +52,20 @@ public class PreferenceTypeRecordTest {
   @Test
   void testCantInstantiateObjectWithoutStorer() {
     try {
-      RecordType<RecordWithObject> recordType = new RecordType<>(RecordWithObject.class, null, null);
+      RecordType<RecordWithObject> recordType =
+          new RecordType<>(RecordWithObject.class, null, null);
       fail("construction of RecordWithObject without a storer should fail");
     } catch (IllegalArgumentException e) {
-      assertEquals("No preference type provided for element color of type Color in record RecordWithObject.", e.getMessage());
+      assertEquals(
+          "No preference type provided for element color of type Color in record RecordWithObject.",
+          e.getMessage());
     }
   }
 
   @Test
   void testCanInstantiateObjectWithStorer() {
-    RecordType<RecordWithObject> recordType = new RecordType<>(RecordWithObject.class,
-        Map.of("color", new ColorType(false)),
-        null);
+    RecordType<RecordWithObject> recordType =
+        new RecordType<>(RecordWithObject.class, Map.of("color", new ColorType(false)), null);
     assertNotNull(recordType);
   }
 
@@ -88,9 +98,8 @@ public class PreferenceTypeRecordTest {
   @Test
   void objectSave() {
     Preferences storage = mock(Preferences.class);
-    RecordType<RecordWithObject> recordType = new RecordType<>(RecordWithObject.class,
-        Map.of("color", new ColorType(false)),
-        null);
+    RecordType<RecordWithObject> recordType =
+        new RecordType<>(RecordWithObject.class, Map.of("color", new ColorType(false)), null);
 
     RecordWithObject rtt = new RecordWithObject("John Doe", Color.RED);
 
@@ -134,11 +143,11 @@ public class PreferenceTypeRecordTest {
     Preferences storage = mock(Preferences.class);
 
     when(storage.get(eq("ABC.DEF.class"), any())).thenReturn("SimpleRecord");
-    when(storage.get(eq("ABC.DEF.name"), any())).thenAnswer(invocation -> invocation.getArgument(1));
+    when(storage.get(eq("ABC.DEF.name"), any()))
+        .thenAnswer(invocation -> invocation.getArgument(1));
 
-    RecordType<SimpleRecord> recordType = new RecordType<>(SimpleRecord.class, null,
-        Map.of("name", () -> "default name")
-    );
+    RecordType<SimpleRecord> recordType =
+        new RecordType<>(SimpleRecord.class, null, Map.of("name", () -> "default name"));
 
     SimpleRecord result = recordType.get(storage, "ABC.DEF", null);
 
@@ -152,13 +161,11 @@ public class PreferenceTypeRecordTest {
     when(storage.get(eq("ABC.DEF.class"), any())).thenReturn("SimpleRecord");
     when(storage.get(eq("ABC.DEF.name"), any())).thenReturn(simpleRecord.name());
 
-    RecordType<SimpleRecord> recordType = new RecordType<>(SimpleRecord.class, null,
-        Map.of("name", () -> "default name")
-    );
+    RecordType<SimpleRecord> recordType =
+        new RecordType<>(SimpleRecord.class, null, Map.of("name", () -> "default name"));
 
     SimpleRecord result = recordType.get(storage, "ABC.DEF", null);
 
     assertEquals(simpleRecord.name(), result.name());
   }
-
 }

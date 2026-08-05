@@ -34,5 +34,8 @@
             <AppenderRef ref="LogFile"/>
             <AppenderRef ref="jtextarea-log" level="debug"/>
         </Root>
+        <Logger name="net.rptools.maptool.client.ui.preferencesdialog.hardware" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
     </Loggers>
 </Configuration>

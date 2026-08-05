@@ -1,17 +1,29 @@
+/*
+ * This software Copyright by the RPTools.net development team, and
+ * licensed under the Affero GPL Version 3 or, at your option, any later
+ * version.
+ *
+ * MapTool Source Code is distributed in the hope that it will be
+ * useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * You should have received a copy of the GNU Affero General Public
+ * License * along with this source Code.  If not, please visit
+ * <http://www.gnu.org/licenses/> and specifically the Affero license
+ * text at <http://www.gnu.org/licenses/agpl.html>.
+ */
 package net.rptools.maptool.util.preferences;
-
-import net.rptools.maptool.util.preferences.PreferenceType.ArrayType;
-import net.rptools.maptool.util.preferences.PreferenceType.StringType;
-import org.junit.jupiter.api.Test;
-
-import java.util.function.Supplier;
-import java.util.prefs.Preferences;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class PreferenceTypeArrayTest {
+import java.util.function.Supplier;
+import java.util.prefs.Preferences;
+import net.rptools.maptool.util.preferences.PreferenceType.ArrayType;
+import net.rptools.maptool.util.preferences.PreferenceType.StringType;
+import org.junit.jupiter.api.Test;
 
+public class PreferenceTypeArrayTest {
 
   @Test
   void testSaveNull() throws Throwable {
@@ -31,7 +43,7 @@ public class PreferenceTypeArrayTest {
 
     ArrayType<String> prefType = new PreferenceType.ArrayType<>(new StringType());
 
-    prefType.set(storage, "ABC.DEF", new String[]{});
+    prefType.set(storage, "ABC.DEF", new String[] {});
 
     verify(storage, times(1)).putInt("ABC.DEF.length", 0);
     verifyNoMoreInteractions(storage);
@@ -43,7 +55,7 @@ public class PreferenceTypeArrayTest {
 
     ArrayType<String> prefType = new PreferenceType.ArrayType<>(new StringType());
 
-    prefType.set(storage, "ABC.DEF", new String[]{"A", "B", "C"});
+    prefType.set(storage, "ABC.DEF", new String[] {"A", "B", "C"});
 
     verify(storage, times(1)).putInt("ABC.DEF.length", 3);
     verify(storage, times(1)).put("ABC.DEF.0", "A");
@@ -58,7 +70,7 @@ public class PreferenceTypeArrayTest {
 
     ArrayType<String> prefType = new PreferenceType.ArrayType<>(new StringType());
 
-    prefType.set(storage, "ABC.DEF", new String[]{"A", null, "C"});
+    prefType.set(storage, "ABC.DEF", new String[] {"A", null, "C"});
 
     verify(storage, times(1)).putInt("ABC.DEF.length", 3);
     verify(storage, times(1)).put("ABC.DEF.0", "A");
@@ -120,7 +132,6 @@ public class PreferenceTypeArrayTest {
     assertEquals(0, result.length);
   }
 
-
   @Test
   void testLoadEmptyWithDefault() throws Throwable {
     Preferences storage = mock(Preferences.class);
@@ -169,6 +180,4 @@ public class PreferenceTypeArrayTest {
     assertNull(result[1]);
     assertEquals("C", result[2]);
   }
-
 }
-
